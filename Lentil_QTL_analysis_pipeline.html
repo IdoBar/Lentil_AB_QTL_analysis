@@ -4244,8 +4244,8 @@ div.tocify {
 <h3>Genotyping</h3>
 <p>Both parent genotypes (x3 replicates each) and their F5 (n=140) progeny population, as well as representatives of “ILL207” cultivar, were sent for RNA-sequencing (RNA-Seq; AgriBio, Bundoora, VIC). Library preparation protocol…. and sequenced on 2 lanes of an Illumina HiSeq3000 sequencing platform, producing xxx bp paired-end reads</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>DT<span class="op">::</span><span class="kw">datatable</span>(linkage_map_stats, <span class="dt">caption =</span> <span class="kw">tbls</span>(<span class="dt">name=</span><span class="st">&quot;Homozyg_V1_stats&quot;</span>), <span class="dt">rownames =</span> <span class="ot">FALSE</span>)</span></code></pre></div>
-<div id="htmlwidget-ef3fc06bd20dddce5ff6" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ef3fc06bd20dddce5ff6">{"x":{"filter":"none","caption":"<caption>Table  1: Summary statistics of linkage map constructed from bi-allelic, polymorphic and homozygous only markers.<\/caption>","data":[["1","2","3","4","5","6","7"],["LG1","LG2","LG3","LG4","LG5","LG6","LG7"],[0.403200119989829,0.287511193422101,0.470278890469806,0.331073794394683,0.42553002419909,0.370717839317804,0.644139677457475],[2.31,2.49230769230769,1.93846153846154,2.8169014084507,2.36144578313253,2.48809523809524,2.21276595744681],[93.1392277176504,93.1536266687609,59.2551401991956,66.2147588789365,83.4038847430216,77.480028417421,66.9905264555774],[231,324,126,200,196,209,104]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>...1<\/th>\n      <th>chr<\/th>\n      <th>mean(marker_dist)<\/th>\n      <th>mean(marker_dens)<\/th>\n      <th>LG_length<\/th>\n      <th>marker_num<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,3,4,5]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-efcb0d6ffd81a9ca2814" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-efcb0d6ffd81a9ca2814">{"x":{"filter":"none","caption":"<caption>Table  1: Summary statistics of linkage map constructed from bi-allelic, polymorphic and homozygous only markers.<\/caption>","data":[["1","2","3","4","5","6","7"],["LG1","LG2","LG3","LG4","LG5","LG6","LG7"],[0.403200119989829,0.287511193422101,0.470278890469806,0.331073794394683,0.42553002419909,0.370717839317804,0.644139677457475],[2.31,2.49230769230769,1.93846153846154,2.8169014084507,2.36144578313253,2.48809523809524,2.21276595744681],[93.1392277176504,93.1536266687609,59.2551401991956,66.2147588789365,83.4038847430216,77.480028417421,66.9905264555774],[231,324,126,200,196,209,104]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>...1<\/th>\n      <th>chr<\/th>\n      <th>mean(marker_dist)<\/th>\n      <th>mean(marker_dens)<\/th>\n      <th>LG_length<\/th>\n      <th>marker_num<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,3,4,5]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="analysis-approach" class="section level3">
 <h3>Analysis Approach</h3>
@@ -4262,15 +4262,6 @@ div.tocify {
 </div>
 <div id="methodologies" class="section level2">
 <h2>Methodologies</h2>
-<div id="access-to-the-lentil-genome" class="section level5">
-<h5>Access to the lentil Genome</h5>
-<ul>
-<li>An account has been created on the University of Saskatchewan web portal <a href="http://knowpulse.usask.ca/portal/">KnowPulse</a><br />
-Username: <em>Rebecca.ford@griffith.edu.au</em>, Password: <em>Harrison8</em><br />
-</li>
-<li>Login and download the full sequence using the instructions on this <a href="http://knowpulse2.usask.ca/portal/node/1466897">page</a> with the username: <em>rfAustralia</em>, Password: <em>NMQDesreRw</em> (this is separate from your login information for KnowPulse to allow use of wget for download)</li>
-</ul>
-</div>
 <div id="variant-filtering" class="section level3">
 <h3>Variant Filtering</h3>
 <p>Variants were first screened to clear calls with low Genotyping Quality (<span class="math inline">\(GQ&lt;20\)</span>) and too low or too high Depth coverage (<span class="math inline">\(DP&lt;7\)</span> || <span class="math inline">\(DP&gt;500\)</span>). The remaining variant calls at each locus were counted and loci were filtered to include only SNP sites with valid calls in at least 50% of the samples ($NS $). Filtration was performed using <font face="consolas">SnpSift</font> v4.3p <span class="citation">(Ruden <em>et al.</em> 2012; Cingolani <em>et al.</em> 2012)</span>.</p>
@@ -4294,99 +4285,11 @@ Username: <em>Rebecca.ford@griffith.edu.au</em>, Password: <em>Harrison8</em><br
 <span id="cb2-18"><a href="#cb2-18"></a><span class="fu">grep</span> -vF <span class="st">&quot;./.:&quot;</span> Hari_parents_genotype_reset.snps.vcf <span class="kw">|</span> <span class="ex">SnpSift</span> filter <span class="st">&quot; isHom( GEN[0] ) &amp; isHom( GEN[1] ) &amp; ! ( GEN[0] = GEN[1] ) &quot;</span>  <span class="op">&gt;</span> Hari_parents_filtered.snps.vcf</span>
 <span id="cb2-19"><a href="#cb2-19"></a><span class="co"># Further filtering was done in R - Jump to vcf_filtration_R</span></span>
 <span id="cb2-20"><a href="#cb2-20"></a> </span></code></pre></div>
-<p>Additional processing of the variants was performed in R v3.5.3 <span class="citation">(R Core Team 2017)</span>, keeping only bi-allelic SNP polymorphoic between the parents genotypes and recursively filtering out markers and samples with non-valid genotype calls (gradually increasing the threshold for valid call rates from 80% to 90%).</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># Install and load needed packages</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>package_list &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;tidyverse&quot;</span>, <span class="st">&quot;RColorBrewer&quot;</span>) <span class="co"># &quot;radiator&quot;, </span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>pacman<span class="op">::</span><span class="kw">p_load</span>(<span class="dt">char=</span>package_list)</span>
-<span id="cb3-4"><a href="#cb3-4"></a></span>
-<span id="cb3-5"><a href="#cb3-5"></a></span>
-<span id="cb3-6"><a href="#cb3-6"></a><span class="kw">options</span>(<span class="dt">stringsAsFactors=</span><span class="ot">FALSE</span>)</span>
-<span id="cb3-7"><a href="#cb3-7"></a><span class="co"># Load vcf file</span></span>
-<span id="cb3-8"><a href="#cb3-8"></a>stacks_dir &lt;-<span class="st"> &quot;../Stacks_vcf_files&quot;</span></span>
-<span id="cb3-9"><a href="#cb3-9"></a>vcf_file &lt;-<span class="st"> &quot;stacks_M1m4n2_populations.snps.vcf&quot;</span>  <span class="co"># ref_stacks2_populations.snps.vcf</span></span>
-<span id="cb3-10"><a href="#cb3-10"></a>vcf_data &lt;-<span class="st"> </span><span class="kw">read_tsv</span>(<span class="kw">file.path</span>(stacks_dir, vcf_file), <span class="dt">comment =</span> <span class="st">&quot;##&quot;</span>) <span class="co">#%&gt;% </span></span>
-<span id="cb3-11"><a href="#cb3-11"></a>  <span class="co"># mutate(`#CHROM`=as.numeric(unlist(strsplit(`#CHROM`, split=&quot;_&quot;))[2]))  # n_max=100</span></span>
-<span id="cb3-12"><a href="#cb3-12"></a>sample_cols &lt;-<span class="st"> </span><span class="kw">colnames</span>(vcf_data)[<span class="dv">10</span><span class="op">:</span><span class="kw">ncol</span>(vcf_data)]</span>
-<span id="cb3-13"><a href="#cb3-13"></a><span class="co"># Relace missing genotypes and heterozygotes with ./.</span></span>
-<span id="cb3-14"><a href="#cb3-14"></a>vcf_data &lt;-<span class="st"> </span>vcf_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate_at</span>(<span class="kw">vars</span>(<span class="kw">one_of</span>(sample_cols)), </span>
-<span id="cb3-15"><a href="#cb3-15"></a>       <span class="dt">.funs =</span> <span class="kw">funs</span>(<span class="kw">if_else</span>(<span class="kw">grepl</span>(<span class="st">&quot;^1/0&quot;</span>, .) <span class="op">|</span><span class="st"> </span><span class="kw">grepl</span>(<span class="st">&quot;^0/1&quot;</span>, .) <span class="op">|</span><span class="st"> </span><span class="kw">grepl</span>(<span class="st">&quot;^</span><span class="ch">\\</span><span class="st">.$&quot;</span>, .), <span class="st">&quot;./.&quot;</span>, .)))</span>
-<span id="cb3-16"><a href="#cb3-16"></a><span class="co"># Check if we have any heterozygote left</span></span>
-<span id="cb3-17"><a href="#cb3-17"></a><span class="co"># sum(apply(vcf_data[sample_cols], 1, function(r) sum(grepl(&quot;^1/0&quot;, r) || grepl(&quot;^0/1&quot;, r))))</span></span>
-<span id="cb3-18"><a href="#cb3-18"></a>exclude_markers &lt;-<span class="st"> </span><span class="ot">FALSE</span></span>
-<span id="cb3-19"><a href="#cb3-19"></a>vcf_filt_data &lt;-<span class="st"> </span>vcf_data</span>
-<span id="cb3-20"><a href="#cb3-20"></a>incl_samples &lt;-<span class="st"> </span>sample_cols</span>
-<span id="cb3-21"><a href="#cb3-21"></a>counter=<span class="dv">1</span></span>
-<span id="cb3-22"><a href="#cb3-22"></a>miss_rates &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="fl">0.2</span>, <span class="fl">0.1</span>, <span class="fl">-0.05</span>)</span>
-<span id="cb3-23"><a href="#cb3-23"></a><span class="cf">for</span> (m <span class="cf">in</span> miss_rates){</span>
-<span id="cb3-24"><a href="#cb3-24"></a>  </span>
-<span id="cb3-25"><a href="#cb3-25"></a>  <span class="co"># sample_col_filt &lt;- colnames(vcf_filt_data)[10:ncol(vcf_filt_data)]</span></span>
-<span id="cb3-26"><a href="#cb3-26"></a>  <span class="co"># m &lt;- miss_rates[3]</span></span>
-<span id="cb3-27"><a href="#cb3-27"></a>  </span>
-<span id="cb3-28"><a href="#cb3-28"></a>  excl_samples &lt;-<span class="st"> </span>incl_samples</span>
-<span id="cb3-29"><a href="#cb3-29"></a>  </span>
-<span id="cb3-30"><a href="#cb3-30"></a>  <span class="cf">while</span> (<span class="kw">length</span>(excl_samples)<span class="op">&gt;</span><span class="dv">0</span>) {</span>
-<span id="cb3-31"><a href="#cb3-31"></a>    <span class="co"># vcf_filt_data &lt;- vcf_filt_data %&gt;% filter(!exclude_markers)</span></span>
-<span id="cb3-32"><a href="#cb3-32"></a>    exclude_markers &lt;-<span class="st"> </span><span class="kw">apply</span>(vcf_filt_data[incl_samples], <span class="dv">1</span>, <span class="cf">function</span>(marker) {</span>
-<span id="cb3-33"><a href="#cb3-33"></a>      <span class="kw">sum</span>(<span class="kw">grepl</span>(<span class="st">&quot;^</span><span class="ch">\\</span><span class="st">./</span><span class="ch">\\</span><span class="st">.&quot;</span>, marker) <span class="op">|</span><span class="st"> </span><span class="kw">grepl</span>(<span class="st">&quot;^</span><span class="ch">\\</span><span class="st">.$&quot;</span>, marker)) <span class="op">&gt;</span><span class="st"> </span>m<span class="op">*</span><span class="kw">length</span>(incl_samples)</span>
-<span id="cb3-34"><a href="#cb3-34"></a>    } )</span>
-<span id="cb3-35"><a href="#cb3-35"></a>    <span class="kw">table</span>(exclude_markers)</span>
-<span id="cb3-36"><a href="#cb3-36"></a>    </span>
-<span id="cb3-37"><a href="#cb3-37"></a>    vcf_filt_data &lt;-<span class="st"> </span>vcf_filt_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(<span class="op">!</span>exclude_markers)</span>
-<span id="cb3-38"><a href="#cb3-38"></a>    <span class="co"># Find samples with too many missing markers</span></span>
-<span id="cb3-39"><a href="#cb3-39"></a>    geno_rate &lt;-<span class="st"> </span><span class="fl">0.8</span></span>
-<span id="cb3-40"><a href="#cb3-40"></a>    excl_samples &lt;-<span class="st"> </span>incl_samples[<span class="kw">apply</span>(vcf_filt_data[incl_samples], <span class="dv">2</span>, </span>
-<span id="cb3-41"><a href="#cb3-41"></a>                                       <span class="cf">function</span>(geno) <span class="kw">sum</span>(<span class="kw">grepl</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">./</span><span class="ch">\\</span><span class="st">.&quot;</span>, geno))<span class="op">&gt;</span>(<span class="dv">1</span><span class="op">-</span>geno_rate)<span class="op">*</span><span class="kw">nrow</span>(vcf_filt_data))]</span>
-<span id="cb3-42"><a href="#cb3-42"></a>    </span>
-<span id="cb3-43"><a href="#cb3-43"></a>    </span>
-<span id="cb3-44"><a href="#cb3-44"></a>    <span class="co"># Now repeat marker exclusion without the problematic genotypes</span></span>
-<span id="cb3-45"><a href="#cb3-45"></a>    incl_samples &lt;-<span class="st"> </span>incl_samples[<span class="op">!</span>incl_samples <span class="op">%in%</span><span class="st"> </span>excl_samples]</span>
-<span id="cb3-46"><a href="#cb3-46"></a>    <span class="kw">LogMsg</span>(<span class="kw">sprintf</span>(<span class="st">&quot;Genotype and Marker filtering, round %d, missing rate %.2f&quot;</span>, counter, m))</span>
-<span id="cb3-47"><a href="#cb3-47"></a>    <span class="kw">LogMsg</span>(<span class="kw">sprintf</span>(<span class="st">&quot;Filtered %d genotypes and %d markers&quot;</span>, <span class="kw">length</span>(excl_samples), <span class="kw">sum</span>(exclude_markers)))</span>
-<span id="cb3-48"><a href="#cb3-48"></a>    counter &lt;-<span class="st"> </span>counter <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
-<span id="cb3-49"><a href="#cb3-49"></a>  }</span>
-<span id="cb3-50"><a href="#cb3-50"></a>  </span>
-<span id="cb3-51"><a href="#cb3-51"></a>}</span>
-<span id="cb3-52"><a href="#cb3-52"></a>parents &lt;-<span class="st"> </span>incl_samples[<span class="kw">grepl</span>(<span class="st">&quot;_RF&quot;</span>, incl_samples)]</span>
-<span id="cb3-53"><a href="#cb3-53"></a>poly_markers &lt;-<span class="st"> </span><span class="kw">apply</span>(vcf_filt_data[parents], <span class="dv">1</span>, <span class="cf">function</span>(g) {</span>
-<span id="cb3-54"><a href="#cb3-54"></a>  <span class="co"># g &lt;- vcf_data[1, parents]</span></span>
-<span id="cb3-55"><a href="#cb3-55"></a>  genotypes &lt;-<span class="st"> </span><span class="kw">sub</span>(<span class="st">&quot;:.+&quot;</span>, <span class="st">&quot;&quot;</span>, g)</span>
-<span id="cb3-56"><a href="#cb3-56"></a>  <span class="co"># log_vec &lt;- ifelse(biallelic, length(prop_names[!grepl(&quot;\\.&quot;, prop_names)])==2,</span></span>
-<span id="cb3-57"><a href="#cb3-57"></a>  <span class="co"># length(prop_names[!grepl(&quot;\\.&quot;, prop_names)])&gt;1)</span></span>
-<span id="cb3-58"><a href="#cb3-58"></a>  p_table &lt;-<span class="st"> </span><span class="kw">prop.table</span>(<span class="kw">table</span>(genotypes))</span>
-<span id="cb3-59"><a href="#cb3-59"></a>  g_table &lt;-<span class="st"> </span>p_table[<span class="op">!</span><span class="kw">grepl</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">./</span><span class="ch">\\</span><span class="st">.&quot;</span>, <span class="kw">names</span>(p_table))]</span>
-<span id="cb3-60"><a href="#cb3-60"></a>  <span class="cf">if</span> (<span class="kw">length</span>(g_table)<span class="op">==</span><span class="dv">2</span>) {</span>
-<span id="cb3-61"><a href="#cb3-61"></a>    res &lt;-<span class="st"> </span><span class="ot">TRUE</span> <span class="co"># g_table[1]&gt;0.05 &amp;&amp; g_table[2]&gt;0.05</span></span>
-<span id="cb3-62"><a href="#cb3-62"></a>  }  <span class="cf">else</span> res &lt;-<span class="st"> </span><span class="ot">FALSE</span></span>
-<span id="cb3-63"><a href="#cb3-63"></a>  <span class="kw">return</span>(res)</span>
-<span id="cb3-64"><a href="#cb3-64"></a>})</span>
-<span id="cb3-65"><a href="#cb3-65"></a></span>
-<span id="cb3-66"><a href="#cb3-66"></a><span class="kw">table</span>(poly_markers)</span>
-<span id="cb3-67"><a href="#cb3-67"></a>exclude_genotypes &lt;-<span class="st"> </span>sample_cols[<span class="op">!</span>sample_cols <span class="op">%in%</span><span class="st"> </span>incl_samples]</span>
-<span id="cb3-68"><a href="#cb3-68"></a><span class="co"># Remove missing genotypes and non polymorphic markers</span></span>
-<span id="cb3-69"><a href="#cb3-69"></a>clean_vcf &lt;-<span class="st"> </span>vcf_filt_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(poly_markers) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">select</span>(<span class="op">-</span><span class="kw">one_of</span>(exclude_genotypes)) <span class="co">#%&gt;% </span></span>
-<span id="cb3-70"><a href="#cb3-70"></a>  <span class="co"># mutate(ID=paste(ID, POS, sep= &quot;_&quot;))</span></span>
-<span id="cb3-71"><a href="#cb3-71"></a></span>
-<span id="cb3-72"><a href="#cb3-72"></a><span class="co"># Load marker map (extracted from gstacks.fa) - not needed in Stacks2</span></span>
-<span id="cb3-73"><a href="#cb3-73"></a><span class="co"># marker_map &lt;- read_tsv(file.path(stacks_dir,&quot;tag_chrom.map&quot;)) %&gt;% </span></span>
-<span id="cb3-74"><a href="#cb3-74"></a><span class="co">#   dplyr::rename(CHROM_POS=POS) </span></span>
-<span id="cb3-75"><a href="#cb3-75"></a>  <span class="co"># left_join(marker_map, c(&quot;#CHROM&quot; = &quot;LOC&quot;)) %&gt;% </span></span>
-<span id="cb3-76"><a href="#cb3-76"></a>  <span class="co"># mutate(ID=paste0(&quot;tag&quot;,`#CHROM`, POS, sep=&quot;_&quot;), `#CHROM` = CHROM, </span></span>
-<span id="cb3-77"><a href="#cb3-77"></a>  <span class="co">#        POS=ifelse(STRAND==&quot;+&quot;, CHROM_POS+POS, CHROM_POS-POS)) %&gt;% </span></span>
-<span id="cb3-78"><a href="#cb3-78"></a>  <span class="co"># dplyr::select(-one_of(colnames(marker_map)))</span></span>
-<span id="cb3-79"><a href="#cb3-79"></a></span>
-<span id="cb3-80"><a href="#cb3-80"></a><span class="co"># Write back vcf</span></span>
-<span id="cb3-81"><a href="#cb3-81"></a>vcf_basename &lt;-<span class="st"> </span>tools<span class="op">::</span><span class="kw">file_path_sans_ext</span>(vcf_file)</span>
-<span id="cb3-82"><a href="#cb3-82"></a>clean_vcf_file &lt;-<span class="st"> </span><span class="kw">filedate</span>(<span class="kw">sprintf</span>(<span class="st">&quot;%s.miss%d&quot;</span>,vcf_basename, m<span class="op">*</span><span class="dv">100</span>), <span class="st">&quot;.clean.vcf&quot;</span>,<span class="st">&quot;data&quot;</span>, </span>
-<span id="cb3-83"><a href="#cb3-83"></a>                           <span class="dt">dateformat =</span> <span class="ot">FALSE</span>)</span>
-<span id="cb3-84"><a href="#cb3-84"></a>                            <span class="co"># sub(&quot;.clean.sorted.vcf&quot;, &quot;_miss40.clean.vcf&quot;,vcf_file, fixed = TRUE))</span></span>
-<span id="cb3-85"><a href="#cb3-85"></a></span>
-<span id="cb3-86"><a href="#cb3-86"></a><span class="co"># unlink(clean_vcf_file)</span></span>
-<span id="cb3-87"><a href="#cb3-87"></a><span class="co"># Copy the header into a new file</span></span>
-<span id="cb3-88"><a href="#cb3-88"></a><span class="kw">system2</span>(<span class="st">&quot;grep&quot;</span>, <span class="dt">args=</span><span class="kw">c</span>(<span class="st">&quot;&#39;^##&#39;&quot;</span>, <span class="kw">file.path</span>(stacks_dir, vcf_file)), <span class="dt">stdout =</span> clean_vcf_file)</span>
-<span id="cb3-89"><a href="#cb3-89"></a><span class="cf">if</span> (<span class="kw">file.exists</span>(clean_vcf_file)) <span class="kw">write_tsv</span>(clean_vcf, clean_vcf_file, <span class="dt">append =</span> <span class="ot">TRUE</span>, <span class="dt">col_names =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<p>Additional processing of the variants was performed in R v3.5.3 <span class="citation">(R Core Team 2017)</span>, using the <code>vcf_filtration.R</code> script found in the <code>R</code> folder of this repository, keeping only bi-allelic SNP polymorphoic between the parents genotypes and recursively filtering out markers and samples with non-valid genotype calls (gradually increasing the threshold for valid call rates from 80% to 90%).</p>
 </div>
 <div id="linkage-mapping" class="section level3">
 <h3>Linkage mapping</h3>
+<p>Linkage mapping was performed using the <code>ASmap_linkage.R</code> script found in the <code>R</code> folder of this repository (but using the repository base folder as the working directory), according to the following steps/guidelines:</p>
 <div id="asmap" class="section level4">
 <h4>ASMap</h4>
 <p>The clean, filtered <code>.vcf</code> output files were recoded to <font face="consolas">MSTmap</font> format, according to the <a href="http://www.mstmap.org/">specifications</a>:</p>
@@ -4411,7 +4314,7 @@ Username: <em>Rebecca.ford@griffith.edu.au</em>, Password: <em>Harrison8</em><br
 </div>
 <div id="qtl-analysis" class="section level3">
 <h3>QTL Analysis</h3>
-<p>QTL analysis was performed in R, using the <font face="consolas">R/qtl2</font> v0.22.11 package <span class="citation">(Broman 2018)</span>, an improved modern implementation of the original <font face="consolas">R/qtl</font> <span class="citation">(Broman <em>et al.</em> 2003)</span>.</p>
+<p>QTL analysis was performed in R, using the <code>FT13038_Rqtl2_analysis.R</code> script found in the <code>R</code> folder of this repository, based on <font face="consolas">R/qtl2</font> v0.22.11 package <span class="citation">(Broman 2018)</span>, an improved modern implementation of the original <font face="consolas">R/qtl</font> <span class="citation">(Broman <em>et al.</em> 2003)</span>.</p>
 <div id="preparation-of-data" class="section level4">
 <h4>Preparation of data</h4>
 <p>To import genotype, phenotype and linkage map data to <font face="consolas">R/qtl</font>, 3 files were prepared:</p>
@@ -4421,7 +4324,7 @@ Username: <em>Rebecca.ford@griffith.edu.au</em>, Password: <em>Harrison8</em><br
 <li>Genetic map file</li>
 </ol>
 <p>The first two files were specified as separate <code>.csv</code> files, while the latter was exported from <font face="consolas">OneMap</font>. For analysis in <font face="consolas">R/qtl2</font>, YAML files (<code>.yml</code>) were prepared specifying the location of the genotype, phenotype and map files for each time point.<br />
-A custom script was used to combine the information from all three data files into one <code>.csv</code> file for analysis in <font face="consolas">WinQTLCartographer</font>. <!-- A combined quantitative score was developed, incorporating the 4 quantitative traits, along with the qualitative assessment, giving different weight for each measure, to provide a consistent metric of the overall disease score. --></p>
+A custom script (<code>R/FT13038_WinQTL_export</code>) was used to combine the information from all three data files into one <code>.csv</code> file for analysis in <font face="consolas">WinQTLCartographer</font>. <!-- A combined quantitative score was developed, incorporating the 4 quantitative traits, along with the qualitative assessment, giving different weight for each measure, to provide a consistent metric of the overall disease score. --></p>
 </div>
 <div id="qtl-genome-scan" class="section level4">
 <h4>QTL genome scan</h4>
@@ -4456,13 +4359,12 @@ A custom script was used to combine the information from all three data files in
 <div id="useful-resources" class="section level3">
 <h3>Useful Resources</h3>
 <ul>
-<li><a href="https://github.com/IdoBar/Stacks2_linkage_mapping">Stacks2_linkage_mapping</a> - A GitHub repository of the R scripts used for this analysis.</li>
 <li><a href="https://github.com/IARCbioinfo/VCF-tricks">VCF-tricks</a></li>
 <li><a href="https://gist.github.com/danielecook/f1d80babd7d601a74981#file-vcf_downgrade-sh">VCF-downgrade</a></li>
 <li><a href="https://github.com/aubombarely/GenoToolBox/blob/master/SNPTools/Vcf2Mapmaker">Vcf2Mapmaker</a></li>
 </ul>
 <hr />
-<p>This document was last updated at 2021-04-29 11:06:32 using R Markdown, compiled with R version 3.5.3 (2019-03-11). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. It is especially powerful at authoring documents and reports which include code and can execute code and use the results in the output. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a> and <a href="https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf">Rmarkdown cheatsheet</a>.</p>
+<p>This document was last updated at 2021-04-29 21:06:55 using R Markdown, compiled with R version 3.5.3 (2019-03-11). Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. It is especially powerful at authoring documents and reports which include code and can execute code and use the results in the output. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a> and <a href="https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf">Rmarkdown cheatsheet</a>.</p>
 </div>
 <div id="bibliography" class="section level3 unnumbered">
 <h3 class="unnumbered">Bibliography</h3>
