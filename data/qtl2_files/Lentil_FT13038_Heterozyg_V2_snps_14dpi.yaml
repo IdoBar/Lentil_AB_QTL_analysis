@@ -1,0 +1,18 @@
+# Data from Lentil response to Ascochyta lentis GBS (RILF5)
+# Performed By Mahsa Khorramdelazad on Nov 2017
+crosstype: riself
+geno: Lentil_FT13038_Heterozyg_V2_snps_genos.csv
+founder_geno: Lentil_FT13038_Heterozyg_V2_snps_founder_genos.csv
+pheno: Lentil_FT13038_pheno_14dpi.csv
+#phenocovar: grav2_phenocovar.csv
+gmap: Lentil_FT13038_Heterozyg_V2_snps_gmap.csv
+# pmap: Lentil_FT13038_Heterozyg_V2_snps_pmap.csv
+alleles:
+- A
+- B
+genotypes:
+  0/0: 1
+  1/1: 2
+na.strings:
+- '-'
+- NA

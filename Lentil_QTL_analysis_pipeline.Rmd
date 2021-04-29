@@ -1,0 +1,311 @@
+---
+title: "QTL Mapping of Lentil Defence Response to <i>Ascochyta lentis</i>"
+subtitle: "QTL Analysis of SNPs derived from RNA-Seq data"
+author: "Hari Dadu"
+date: "21 November 2018"
+output: 
+    html_document:
+      toc: true
+      toc_depth: 3
+      toc_float: true
+      highlight: pygments
+      number_sections: false
+      code_folding: hide
+bibliography: style/GBS_analysis.bib
+csl: style/springer-basic-improved-author-date-with-italic-et-al-period.csl
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(list(echo = TRUE, eval=FALSE, message=FALSE))
+# load my utilities from Gist (https://gist.github.com/IdoBar/7f63547158ecdbacf31b54a58af0d1cc)
+# devtools::source_gist("7f63547158ecdbacf31b54a58af0d1cc", filename = "util.R")
+pacman::p_load(char = c("dplyr", "captioner", "knitr", "pander", "DT", "foreach", "doFuture"))
+devtools::source_gist("7f63547158ecdbacf31b54a58af0d1cc", filename = "Util.R")
+# Font Format
+custom_font="consolas"
+fontFmt = function(x,font="consolas"){
+  #outputFormat = knitr::opts_knit$get("rmarkdown.pandoc.to")
+  #if (outputFormat == 'html')
+  formatted_text <- sprintf("<font face='%s'>%s</font>",font,x)
+  return(formatted_text)
+  #else
+  #  x
+}
+
+```
+
+```{r init_captions, include=FALSE, eval=TRUE}
+figs <- captioner(prefix="Figure")
+tbls <- captioner(prefix="Table")
+tbls(name="Homozyg_V1_stats", "Summary statistics of linkage map constructed from bi-allelic, polymorphic and homozygous only markers.")
+tbls(name="param_estimates", "Effect of Stacks denovo parameters on number of loci and estimated error rates.")
+figs(name="error_rates_expl", "Error types between replicates in RAD-Seq.")
+# Read in metadata
+# GBS_read_data <- readxl::read_excel("../AGRF_CAGRF14978_CB2YGANXX_gbs/GBS_Summary.xlsx") %>% 
+#   filter(!grepl("NegControl", Sample)) %>%  mutate(Gen=if_else(grepl("^C", Sample), "F5", "Parent"))
+# sum_GBS_read_data <- GBS_read_data %>% group_by(Gen) %>% summarize_at(c("Tags Total", "Average Tag Depth", "Reads"), .funs =  c("mean", "sum")) %>% as.data.frame(.)
+# Progeny_num <- GBS_read_data %>% filter(Gen=="F5") %>% nrow(.)
+
+# read in linkage map data
+analysis_name <- "Lentil_FT13038_Homozyg_V1_snps_Rep2"
+linkage_map_stats <- readxl::read_excel(glue::glue("./QTL_results/{analysis_name}_Ido_map_stats.xlsx"))
+base_analysis <- sub("_Rep.+", "", analysis_name)
+gmap <- readr::read_csv(glue::glue("./data/qtl2_files/{base_analysis}_gmap.csv"))
+genotypes <- readr::read_csv(glue::glue("./data/qtl2_files/{base_analysis}_genos.csv"))
+peaks_df <- readxl::read_excel(recent_file("./QTL_results",
+                               glue::glue("LOD_peaks_{base_analysis}_mapping.+.xlsx")))
+
+# Read in phenotypic data
+pheno_data <- readxl::read_excel("./data/Phenotyping_AB_results.xlsx", 
+           col_types = c("skip", "text", rep("guess", 12)), sheet = "REP 1", 
+           na = c("", "NA", "NG")) 
+loal_mapping <- readxl::read_excel("./data/Phenotyping_AB_results.xlsx", 
+                      sheet = "LOAL_map", na = c("", "NA", "NG"), skip = 1) %>%
+  dplyr::select(RIL_no, Sample_ID)
+clean_data <- pheno_data %>% dplyr::filter(!is.na(Leaf_score_ratio) & !is.na(Stem_score_ratio), !grepl("-mock", Variety), DPI>7, Rep==2) %>%
+                            # !grepl("ignore", Comment, ignore.case = TRUE)) %>% 
+          dplyr::filter_at(vars(Variety:Isolate), all_vars(!is.na(.))) %>% 
+  dplyr::mutate_at(vars(Leaf_score_ratio:Score_sqrt), as.numeric) %>%
+  dplyr::mutate_at(vars(ends_with("_ratio")), funs(sqrt(.))) %>%
+  # mutate_at(vars(ends_with("_ratio")), ~.*100) %>%
+  dplyr::mutate(Variety=sub("-.+", "", Variety)) %>% 
+  dplyr::mutate(Variety=loal_mapping$Sample_ID[match(Variety, loal_mapping$RIL_no)]) %>%
+  dplyr::mutate(Variety=sub("_", "-", Variety)) %>%
+  dplyr::mutate(DPI=factor(DPI, levels=as.character(2:4*7)))
+num_phenotyped <- clean_data %>% dplyr::count(Variety) 
+num_observation <- clean_data %>% dplyr::count(DPI) 
+obs_variety <- clean_data %>% dplyr::count(Variety) 
+
+
+```
+
+
+
+## Study Description
+### Experimental Design
+Two distinct lentil (*Lens culinaris*) genotypes, resistant and susceptible to Ascochyta blight disease (**ILWL180** and **ILL6002**, respectively) were crossed and the F1 was recursively self-pollinated to create an F5 population. The population was sown and challenged with an inoculation of *Ascochyta lentis* (isolate FT13038) and quantitatively phenotyped by stem and leaf lesion ratios over the course of 4 weeks, at 7, 14, 21 and 28 days post inoculation (dpi).
+The phenotypic data collected was filtered to remove any missing information and was summarised for each genotype, at each sampling time, by averaging the score of its replicates. The cleaned data consisted `r clean_data %>% count(Variety) %>% nrow()` genotypes (due to some missing genotypes that couldn't be grown in replictaes), with an average of `r round(mean(obs_variety$n), 1)` observations per genotype.
+
+
+### Genotyping
+Both parent genotypes (x3 replicates each) and their F5 (n=140) progeny population, as well as representatives of "ILL207" cultivar, were sent for RNA-sequencing (RNA-Seq; AgriBio, Bundoora, VIC). Library preparation protocol.... and sequenced on 2 lanes of an Illumina HiSeq3000 sequencing platform, producing xxx bp paired-end reads
+
+
+```{r eval=TRUE}
+DT::datatable(linkage_map_stats, caption = tbls(name="Homozyg_V1_stats"), rownames = FALSE)
+```
+
+### Analysis Approach
+
+1. Filter output files (remove samples and loci with too much missing information)
+2. Remove co-located markers before linkage mapping -- Within each locus, check if the distance between markers is < 20bp, then if their genotypes is 100% identical, then collapse them to one marker
+3. Fix phasing - make sure alleles are consistently derived from the same parents
+4. Perform linkage mapping and order markers inside each chromosome/linkage group  
+5. QTL analysis and visualisation
+6. Annotation of SNPs under the QTLs
+
+## Methodologies
+
+
+##### Access to the lentil Genome
+
+* An account has been created on the University of Saskatchewan web portal [KnowPulse](http://knowpulse.usask.ca/portal/)  
+Username: _Rebecca.ford\@griffith.edu.au_, Password: _Harrison8_  
+* Login and download the full sequence using the instructions on this [page](http://knowpulse2.usask.ca/portal/node/1466897) with the username: _rfAustralia_, Password: _NMQDesreRw_ (this is separate from your login information for KnowPulse to allow use of wget for download)
+
+
+
+### Variant Filtering
+Variants were first screened to clear calls with low Genotyping Quality ($GQ<20$) and too low or too high Depth coverage ($DP<7$ || $DP>500$). The remaining variant calls at each locus were counted and loci were filtered to include only SNP sites with valid calls in at least 50% of the samples ($NS \ge $). Filtration was performed using `r fontFmt("SnpSift", custom_font)` v4.3p [@ruden_using_2012; @cingolani_program_2012]. 
+
+```{bash vcf_filtering}
+# install SnpSift and SnpEff
+conda install -c bioconda snpsift snpeff vcftools
+# Create an alias to call SnpSift.jar (this example is on windows, under git bash)
+alias SnpSift='java -jar /c/Bioinformatics/tools/snpEff/SnpSift.jar'
+# extract the vcf file and select only SNP sites 
+cd ${RUN}_$DATE  # stacks2_population_16_05_2018, denovo_stacks2_29_05_2018
+# pigz -cd gstacks.vcf.gz | gawk '$1 ~ /^#/ || ($4 ~ /[ACGT]/ && $5 ~ /[ACGT]/)' > gstacks.snps.vcf
+# Extract Chromosome location for each tag
+# pigz -cd gstacks.fa.gz | grep ">" | gawk -vOFS="\t" 'BEGIN{print "LOC","CHROM","POS", "STRAND"}; {sub(">", "", $1); match($2, /pos=(LcChr[0-9]):([0-9]+):([-+])/, arr); print $1,arr[1],arr[2],arr[3]}' > tag_chrom.map
+
+min_GQ = 20
+min_DP = 7
+max_DP = 500
+# Extract the VCF file, select only SNPs, recode genotypes as missing if below a certain threshold, such as genotyping quality or depth (GQ:DP) 
+gunzip -c Unimelb_parents.vcf.gz | sed 's/-1.sorted.bam//g' |   gawk '$1 ~ /^#/ || ($4 ~ /[ACGT]/ && $5 ~ /[ACGT]/)' | SnpSift gtfilter -gv './.' 'DP<7 || DP>500'   > filtered_VCFs/ref_stacks2_populations.snpsift.vcf
+
+# Keep only markers homozygous AND polymorphic between the parents
+grep -vF "./.:" Hari_parents_genotype_reset.snps.vcf | SnpSift filter " isHom( GEN[0] ) & isHom( GEN[1] ) & ! ( GEN[0] = GEN[1] ) "  > Hari_parents_filtered.snps.vcf
+# Further filtering was done in R - Jump to vcf_filtration_R
+ 
+```
+
+Additional processing of the variants was performed in R v`r paste(R.version$major, R.version$minor, sep=".")` [@R_2017], keeping only bi-allelic SNP polymorphoic between the parents genotypes and recursively filtering out markers and samples with non-valid genotype calls (gradually increasing the threshold for valid call rates from 80% to 90%). 
+
+```{r vcf_filtration_R}
+# Install and load needed packages
+package_list <- c("tidyverse", "RColorBrewer") # "radiator", 
+pacman::p_load(char=package_list)
+
+
+options(stringsAsFactors=FALSE)
+# Load vcf file
+stacks_dir <- "../Stacks_vcf_files"
+vcf_file <- "stacks_M1m4n2_populations.snps.vcf"  # ref_stacks2_populations.snps.vcf
+vcf_data <- read_tsv(file.path(stacks_dir, vcf_file), comment = "##") #%>% 
+  # mutate(`#CHROM`=as.numeric(unlist(strsplit(`#CHROM`, split="_"))[2]))  # n_max=100
+sample_cols <- colnames(vcf_data)[10:ncol(vcf_data)]
+# Relace missing genotypes and heterozygotes with ./.
+vcf_data <- vcf_data %>% mutate_at(vars(one_of(sample_cols)), 
+       .funs = funs(if_else(grepl("^1/0", .) | grepl("^0/1", .) | grepl("^\\.$", .), "./.", .)))
+# Check if we have any heterozygote left
+# sum(apply(vcf_data[sample_cols], 1, function(r) sum(grepl("^1/0", r) || grepl("^0/1", r))))
+exclude_markers <- FALSE
+vcf_filt_data <- vcf_data
+incl_samples <- sample_cols
+counter=1
+miss_rates <- seq(0.2, 0.1, -0.05)
+for (m in miss_rates){
+  
+  # sample_col_filt <- colnames(vcf_filt_data)[10:ncol(vcf_filt_data)]
+  # m <- miss_rates[3]
+  
+  excl_samples <- incl_samples
+  
+  while (length(excl_samples)>0) {
+    # vcf_filt_data <- vcf_filt_data %>% filter(!exclude_markers)
+    exclude_markers <- apply(vcf_filt_data[incl_samples], 1, function(marker) {
+      sum(grepl("^\\./\\.", marker) | grepl("^\\.$", marker)) > m*length(incl_samples)
+    } )
+    table(exclude_markers)
+    
+    vcf_filt_data <- vcf_filt_data %>% filter(!exclude_markers)
+    # Find samples with too many missing markers
+    geno_rate <- 0.8
+    excl_samples <- incl_samples[apply(vcf_filt_data[incl_samples], 2, 
+                                       function(geno) sum(grepl("\\./\\.", geno))>(1-geno_rate)*nrow(vcf_filt_data))]
+    
+    
+    # Now repeat marker exclusion without the problematic genotypes
+    incl_samples <- incl_samples[!incl_samples %in% excl_samples]
+    LogMsg(sprintf("Genotype and Marker filtering, round %d, missing rate %.2f", counter, m))
+    LogMsg(sprintf("Filtered %d genotypes and %d markers", length(excl_samples), sum(exclude_markers)))
+    counter <- counter + 1
+  }
+  
+}
+parents <- incl_samples[grepl("_RF", incl_samples)]
+poly_markers <- apply(vcf_filt_data[parents], 1, function(g) {
+  # g <- vcf_data[1, parents]
+  genotypes <- sub(":.+", "", g)
+  # log_vec <- ifelse(biallelic, length(prop_names[!grepl("\\.", prop_names)])==2,
+  # length(prop_names[!grepl("\\.", prop_names)])>1)
+  p_table <- prop.table(table(genotypes))
+  g_table <- p_table[!grepl("\\./\\.", names(p_table))]
+  if (length(g_table)==2) {
+    res <- TRUE # g_table[1]>0.05 && g_table[2]>0.05
+  }  else res <- FALSE
+  return(res)
+})
+
+table(poly_markers)
+exclude_genotypes <- sample_cols[!sample_cols %in% incl_samples]
+# Remove missing genotypes and non polymorphic markers
+clean_vcf <- vcf_filt_data %>% filter(poly_markers) %>% dplyr::select(-one_of(exclude_genotypes)) #%>% 
+  # mutate(ID=paste(ID, POS, sep= "_"))
+
+# Load marker map (extracted from gstacks.fa) - not needed in Stacks2
+# marker_map <- read_tsv(file.path(stacks_dir,"tag_chrom.map")) %>% 
+#   dplyr::rename(CHROM_POS=POS) 
+  # left_join(marker_map, c("#CHROM" = "LOC")) %>% 
+  # mutate(ID=paste0("tag",`#CHROM`, POS, sep="_"), `#CHROM` = CHROM, 
+  #        POS=ifelse(STRAND=="+", CHROM_POS+POS, CHROM_POS-POS)) %>% 
+  # dplyr::select(-one_of(colnames(marker_map)))
+
+# Write back vcf
+vcf_basename <- tools::file_path_sans_ext(vcf_file)
+clean_vcf_file <- filedate(sprintf("%s.miss%d",vcf_basename, m*100), ".clean.vcf","data", 
+                           dateformat = FALSE)
+                            # sub(".clean.sorted.vcf", "_miss40.clean.vcf",vcf_file, fixed = TRUE))
+
+# unlink(clean_vcf_file)
+# Copy the header into a new file
+system2("grep", args=c("'^##'", file.path(stacks_dir, vcf_file)), stdout = clean_vcf_file)
+if (file.exists(clean_vcf_file)) write_tsv(clean_vcf, clean_vcf_file, append = TRUE, col_names = TRUE)
+
+```
+
+### Linkage mapping
+
+#### ASMap
+The clean, filtered `.vcf` output files were recoded to `r fontFmt("MSTmap", custom_font)` format, according to the [specifications](http://www.mstmap.org/):
+
+* It must have markers in rows and genotypes in columns
+* Marker names are required to be in the rownames component of the object
+* Genotype names residing in the names (`colnames()`)
+
+> Before constructing a linkage map it is prudent to go through a pre-construction checklist to ensure that the best quality genotypes/markers are being used to construct the linkage map. A non-exhaustive ordered checklist for an unconstructed marker set could be:
+
+* Check missing allele scores across markers for each genotype as well as across genotypes for each marker.  Markers or genotypes with a high proportion of missing information could be problematic.
+* Check for genetic clones or individuals that have a high proportion of matching allelic information between them.
+* Check markers for excessive segregation distortion. Highly distorted markers may not map to unique locations.
+* Check  markers  for  switched  alleles.   These  markers  will  not  cluster  or  link  well  with other  markers  during  the  construction  process  and  it  is  therefore  preferred  to  repair their alignment before proceeding.
+* Check for co-locating markers. For large linkage maps it would be more computationally efficient from a construction standpoint to temporarily omit markers that are co-located with other markers.
+
+The recoded file was then analysed using `r fontFmt("ASMap", custom_font)` [@TaylorPackageASMapEfficient2017] `r fontFmt("R", custom_font)` package (see [documentation](https://arxiv.org/pdf/1705.06916.pdf)).
+
+After removal of distorted markers and genotypes wih missing information, the resulting linkage map was constructed from the data of the 2 parents and `r nrow(genotypes)` RIL genotypes and `r nrow(gmap)` markers. 
+
+
+
+
+### QTL Analysis
+QTL analysis was performed in R, using the `r fontFmt("R/qtl2", custom_font)` v`r packageVersion("qtl2")` package [@Broman_2018], an improved modern implementation of the original `r fontFmt("R/qtl", custom_font)` [@broman_r/qtl:_2003]. 
+
+#### Preparation of data
+To import genotype, phenotype and linkage map data to `r fontFmt("R/qtl", custom_font)`, 3 files were prepared:   
+
+1. Genotype file
+2. Phenotype file
+3. Genetic map file
+
+The first two files were specified as separate `.csv` files, while the latter was exported from `r fontFmt("OneMap", custom_font)`. For analysis in `r fontFmt("R/qtl2", custom_font)`, YAML files (`.yml`) were prepared specifying the location of the genotype, phenotype and map files for each time point.  
+A custom script was used to combine the information from all three data files into one `.csv` file for analysis in `r fontFmt("WinQTLCartographer", custom_font)`.
+<!-- A combined quantitative score was developed, incorporating the 4 quantitative traits, along with the qualitative assessment, giving different weight for each measure, to provide a consistent metric of the overall disease score. -->
+
+#### QTL genome scan
+A genome scan approach was chosen to identify significant QTL regions, using a linear mixed model accounting for relationships among individuals using a random polygenic effect, supported by a permutation test (n=1000) to determine LOD threshold for significance for each trait at each time point. 
+
+Loci and QTL positions across the linkage map were prepared in R and exported for plotting in `r fontFmt("MapChart", custom_font)` v2.32 [@voorrips_mapchart:_2002].
+
+In addition, the constructed genetic map and genotype-phenotype data were exported for analysis in `r fontFmt("Windows QTL Cartographer", custom_font)` v2.5_011 [@shengchu_wang_windows_2012], using a CIM approach and determine the contribution of each QTL to the phenotype variability. 
+
+#### SNP annotation 
+Physical (chromosomal) locations of the QTL peaks were determined and SNPs and genes were extracted from a range of 20 Kbp up and downstream of these locations. Functional annotation determined the effect of each SNP on the underlying genes.  
+
+##### Annotation procedure
+1. Load genome (.fa) and gene models (.gff) files   
+2. Load all variants (.vcf) file  
+3. Load linkage map (gmap.csv) file
+4. Load QTL peaks table
+5. Identify QTL trait of interest, find min and max position(s)  
+6. Translate linkage map positions to genomic coordinates (based on marker name)  
+7. Subset all markers between those coordinates from the variants file (as GRanges)  
+8. Subset transcripts that intersect with the variants   
+
+***
+### Useful Resources
+* [Stacks2_linkage_mapping](https://github.com/IdoBar/Stacks2_linkage_mapping) - A GitHub repository of the R scripts used for this analysis.
+* [VCF-tricks](https://github.com/IARCbioinfo/VCF-tricks)
+* [VCF-downgrade](https://gist.github.com/danielecook/f1d80babd7d601a74981#file-vcf_downgrade-sh)
+* [Vcf2Mapmaker](https://github.com/aubombarely/GenoToolBox/blob/master/SNPTools/Vcf2Mapmaker)
+
+
+
+
+***
+This document was last updated at `r Sys.time()` using R Markdown, compiled with `r R.version.string`. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. It is especially powerful at authoring documents and reports which include code and can execute code and use the results in the output. For more details on using R Markdown see <http://rmarkdown.rstudio.com> and [Rmarkdown cheatsheet](https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf).
+
+### Bibliography
+
