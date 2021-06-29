@@ -6,10 +6,14 @@ if (!require("qtl2")) install.packages("qtl2", repos="https://rqtl.org/qtl2cran"
 # devtools::install_github("KonradZych/phenotypes2genotypes")
 devtools::install_github("IdoBar/LinkageMapView@1c6b560")
 # Install and load needed packages
-package_list <- c("qtl", "RColorBrewer","rentrez", "vcfR", "LinkageMapView", "openxlsx", "seqinr","tidyverse") # "radiator", "qtl2"
+package_list <- c("qtl", "rentrez", "vcfR", "paletteer",
+                  "LinkageMapView", "openxlsx", "seqinr","tidyverse",
+                  "qtl2ggplot") # "radiator", "qtl2"
 pacman::p_load(char = package_list)
 
-
+# Define plotting theme
+pacman::p_load_gh("Mikata-Project/ggthemr")
+pale_theme <- ggthemr::ggthemr("pale", text_size = 18, set_theme = FALSE)
 
 
 
@@ -36,6 +40,7 @@ for (dpi in time_points){
   yml <- yaml_files[grepl(dpi, yaml_files)]
   LogMsg(sprintf("Processing YAML file: %s", yml))
   gbs_data <- read_cross2(yml)
+  # colnames(gbs_data$pheno) <- str_to_title(gsub("_", " ", colnames(gbs_data$pheno)))
   # insert pseudomarkers into the genetic map
   
   # if (!exists("gen_map")) {
@@ -89,6 +94,166 @@ write_xlsx(thresh_df,
 # xlsx::write.xlsx(as.data.frame(peaks_df), filedate("LOD_peaks_Chr_mapping", ".xlsx", "data"), row.names = FALSE)
 # thresh_df
 peaks_df %>% group_by(chr) %>% summarise(max_lod=max(lod))
+
+# plot QTL and LOD scores ####
+# define colours 
+par_pal <- paletteer_d("colorblindr::OkabeIto")[c(8, 5,6)]
+# paletteer_d("ochRe::parliament", 3)[c(3,1,2)]
+
+plot_cols <- list(
+  trait=colnames(gbs_data$pheno) %>% 
+    setNames(as.character(paletteer_d("ggthemes::calc", length(.))), .), #%>%  paletteer_d("ggthemes::calc", length(.)))
+  #  c(., c("Population"="black")), # awtools::mpalette , "rcartocolor::Safe/Vivid" 
+  dpi=time_points %>% 
+    setNames(as.character(paletteer_d("ggthemes::calc", length(.))), .)
+)
+
+
+
+# plot with qtl2ggplot
+plot_map <- gen_map
+plot_map[["LG8"]] <- NULL
+ymx <- max(peaks_df$lod)
+threshold=3
+
+# plot_data <- plot_map %>% imap_dfr(~tibble(Chr=.y, Locus=names(.x), Pos=.x))
+plot_data <- LOD_scores %>% imap_dfr(~mutate(.x, dpi=paste(.y, "dpi"),
+                                     Trait=sub("_score_ratio", " Lesion Score", Trait))) %>% 
+  as_tibble() %>% filter(Group!="LG8")
+
+ggplot(plot_data, aes(x=Position, y=LOD, colour=Trait)) + 
+  geom_line(size=1) +
+  geom_hline(yintercept=threshold, col="#393939", lty="dashed", lwd=0.75) +
+  scale_color_manual(values = adjustcolor(as.character(plot_cols$trait), alpha.f = 0.75)) +
+       facet_grid(rows = vars(dpi), cols = vars(Group)) +
+  labs(x="Position (cM)") +
+  guides(color=guide_legend(override.aes = list(color=as.character(plot_cols$trait)))) +
+  plot_theme(def_theme = "bw", baseSize = 16, strip_fill = "#C3D6DF") +
+  theme(panel.border = element_rect(colour = "#393939", size = 0.5), # 
+        strip.background = element_rect(colour = "#393939", size = 0.5),
+        panel.grid.major.x = element_blank(),
+        panel.spacing.x = unit(0,"line"),
+        panel.grid.major.y = element_line(size=0.5),
+        axis.text = element_text(size = rel(0.8)),
+        # axis.text.x = element_blank(),
+        # axis.ticks.x = element_blank(),
+        panel.grid.minor = element_blank()) # , linetype = "dashed", colour = "#393939"
+          # panel.grid = element_blank())
+ggsave(filedate(glue::glue("QTL_LOD_{analysis_name}"), ".pdf", "plots"), width = 12, height = 9)
+        # panel.grid.minor=element_blank(),
+        # strip.text=element_text(size=12),
+        # strip.background=element_rect(fill = "#C3D6DF"))
+
+
+# Compare the LOD scores for each trait with each method
+autoplot(qtl_list[[2]], plot_map, lodcolumn = colnames(gbs_data$pheno), 
+         facet = "pheno", bgcolor = "gray90",
+         altbgcolor = "gray85", col=plot_cols$trait) +
+  # pale_theme$theme + 
+  geom_hline(yintercept=threshold, col="#393939", lty="dashed", lwd=0.75) +
+  # theme_bw(base_size = 16) +
+  theme(axis.title.y=element_text(face="bold", vjust = 1.5, size=14),
+        axis.title.x=element_text(face="bold", vjust = 0.1, size=14),
+        legend.title=element_text(size=14, hjust=0.5),
+        legend.text=element_text(size = 12,lineheight = 1.5),
+        axis.text.y=element_text(size=13),
+        #panel.grid.minor=element_blank(),
+        strip.text=element_text(size=12),
+        strip.background=element_rect(fill = "#C3D6DF"))
+  
+  # annotate("text", x=0, y=threshold, label = "LOD threshold")
+#par(mar=c(4.1, 4.1, 1.6, 1.1))
+
+# lod_vars <- paste0("out_pg_", time_points)
+
+
+
+# plot with base R
+# color <- c("slateblue", t_col("violetred", percent = 0))
+colors <- adjustcolor(RColorBrewer::brewer.pal(4, "Set1"), alpha.f = 0.65)
+par(mfrow=c(2,1))
+pdf(filedate(glue::glue("{analysis_name}_LOD"), ".pdf", "plots"), width = 8, height = 6)
+# unique(signif_lod_qtls$lodcolumn)
+for(i in seq_along(colnames(gbs_data$pheno))) {
+  # i=4
+  plot(qtl_list[[1]], gen_map, lodcolumn=i, col=colors[1], main=colnames(gbs_data$pheno)[i], 
+       xlab="Linkage Group",
+       ylim=c(0, ymx*1.5))
+  if (colnames(gbs_data$pheno)[i] %in% peaks_df$lodcolumn[peaks_df$lod==ymx]){
+    abline(h=threshold, col="darkblue", lty="dashed", lwd=1) #ymx-1   h=thresh_df[1,i+1], col=colors[1]
+    text(x=0, y=threshold, labels = "LOD threshold", adj= c(-0.05, -0.5))
+  }
+  for (o in 2:length(time_points)){
+    # o=3
+    
+    plot(qtl_list[[time_points[o]]], gen_map, lodcolumn=i, col=colors[o],
+         add = TRUE)
+    # abline(h=2.5, col=colors[o], lty="dashed", lwd=0.8)
+  }
+  
+  legend("topright", lwd=2, col=colors, paste(time_points, "dpi"), bg="gray90") # "H-K", , lty=c(1)
+}
+dev.off()
+
+
+# Plot each trait and time separately
+# for(i in seq_along(colnames(gbs_data$pheno))) {
+#   for (o in 1:length(time_points)){
+#   # i=4
+#     plot(qtl_list[[time_points[o]]], gen_map, lodcolumn=i, col=colors[o], main=colnames(gbs_data$pheno)[i],
+#                             xlab='Linkage Group',ylim=c(0, ymx*1.02))
+#     abline(h=thresh_df[o,i+1], col=colors[o], lty="dashed", lwd=0.8)
+#    legend("topright", lwd=2, col=colors, paste(time_points, "dpi"), bg="gray90")
+#     # o=3
+#     
+#   }
+#   
+#    # "H-K", , lty=c(1)
+# }
+par(mfrow=c(1,1))
+# Focus on one chromosome and only significant trait
+lod_peaks <- peaks_df %>% filter(lod>threshold)
+traits <- unique(lod_peaks$lodcolumn)
+x_intercept_start <- min(lod_peaks$ci_lo)
+
+x_intercept_end <- max(lod_peaks$ci_hi)
+chrom <- "LG3"
+x_intercept_locus <-  names(gen_map[[chrom]][gen_map[[chrom]]==intercept_start])
+y_intercept <- qtl_list[[1]] %>% as.data.frame() %>% rownames_to_column(var="locus") %>% 
+  filter(locus==x_intercept_locus) %>% .[,traits[1]]
+# str(qtl_list)
+
+
+pdf(filedate(glue::glue("{analysis_name}_LOD_{chrom}"), ".pdf", "plots"), width = 8, height = 6)
+for(i in seq_along(unique(lod_peaks$lodcolumn))) {
+  # i=4
+  plot(qtl_list[[1]], gen_map, lodcolumn=i, col=colors[1], main=colnames(gbs_data$pheno)[i], chr=chrom,
+       xlab=sub("LG", "Linkage Group ", chrom),
+       ylim=c(0, ymx*1.5))
+  if (colnames(gbs_data$pheno)[i] %in% peaks_df$lodcolumn[peaks_df$lod==ymx]){
+    
+    segments(x0 = intercept_start, y0=y_intercept, x1 = intercept_end, y1 = y_intercept, col="darkblue", lty="dashed", lwd=1) # h=thresh_df[1,i+1], col=colors[1]
+    segments(x0 = intercept_start, y0=y_intercept, x1 = intercept_start, y1 = 0, col="darkblue", lty="dashed", lwd=1) # vertical line
+    segments(x0 = intercept_end, y0=y_intercept, x1 = intercept_end, y1 = 0, col="darkblue", lty="dashed", lwd=1)
+    text(x=intercept_start, y=0.5, labels = "QTL\nregion", adj= -0.25)
+    abline(h=threshold, col="darkblue", lty="dashed", lwd=1) #ymx-1   h=thresh_df[1,i+1], col=colors[1]
+    text(x=0, y=threshold, labels = "LOD threshold", adj= c(-0.05, -0.5))
+  }
+  
+  for (o in 2:length(time_points)){
+    # o=3
+    
+    plot(qtl_list[[time_points[o]]], gen_map, lodcolumn=i, col=colors[o],  chr=chrom,
+         add = TRUE)
+    # abline(h=2.5, col=colors[o], lty="dashed", lwd=0.8)
+  }
+  
+  legend("topright", lwd=2, col=colors, paste(time_points, "dpi"), bg="gray90") # "H-K", , lty=c(1)
+}
+dev.off()
+
+
+
 
 #### QTL SNPs ####
 # Retrieve SNPs under the QTL (any snps between tag_144852_343285964 to tag_148476_364570997)
@@ -189,8 +354,8 @@ best_matches <- annot_table %>%
   filter(!is.na(Title), !grepl("unknown|hypothetical|uncharacterized", Title, ignore.case = TRUE)) %>% 
   group_by(query_acc.ver) %>% top_n(1, dplyr::desc(bit_score)) %>% ungroup() %>% 
   write_xlsx(., excel_file = filedate(glue::glue("{analysis_name}_qtl_transcripts_annot"), ext=".xlsx", 
-                                                                            outdir = here::here("QTL_results")),
-                                                   sheet = glue::glue("transcript_annot"), overwritesheet=TRUE)
+              outdir = here::here("QTL_results")),
+             sheet = glue::glue("transcript_annot"), overwritesheet=TRUE)
 
 # Check the effect of the SNP
 check_snp_effect <- function(dna_obj, snp_pos, ref_allele, alt_allele, strand, trans_start, trans_end){
@@ -269,97 +434,6 @@ for (qtl_trait in unique(signif_lod_qtls$lodcolumn)){
 
 # check_snp_effect_vect <- Vectorize(check_snp_effect)
 
-
-
-# Compare the LOD scores for each trait with each method
-# color <- c("slateblue", t_col("violetred", percent = 0))
-colors <- adjustcolor(RColorBrewer::brewer.pal(4, "Set1"), alpha.f = 0.65)
-
-#par(mar=c(4.1, 4.1, 1.6, 1.1))
-par(mfrow=c(2,1))
-# lod_vars <- paste0("out_pg_", time_points)
-
-ymx <- max(peaks_df$lod)
-threshold=3
-pdf(filedate(glue::glue("{analysis_name}_LOD"), ".pdf", "plots"), width = 8, height = 6)
-# unique(signif_lod_qtls$lodcolumn)
-for(i in seq_along(colnames(gbs_data$pheno))) {
-  # i=4
-  plot(qtl_list[[1]], gen_map, lodcolumn=i, col=colors[1], main=colnames(gbs_data$pheno)[i], 
-       xlab="Linkage Group",
-       ylim=c(0, ymx*1.5))
-  if (colnames(gbs_data$pheno)[i] %in% peaks_df$lodcolumn[peaks_df$lod==ymx]){
-    abline(h=threshold, col="darkblue", lty="dashed", lwd=1) #ymx-1   h=thresh_df[1,i+1], col=colors[1]
-    text(x=0, y=threshold, labels = "LOD threshold", adj= c(-0.05, -0.5))
-  }
-  for (o in 2:length(time_points)){
-    # o=3
-    
-    plot(qtl_list[[time_points[o]]], gen_map, lodcolumn=i, col=colors[o],
-         add = TRUE)
-    # abline(h=2.5, col=colors[o], lty="dashed", lwd=0.8)
-  }
-  
-  legend("topright", lwd=2, col=colors, paste(time_points, "dpi"), bg="gray90") # "H-K", , lty=c(1)
-}
-dev.off()
-
-
-# Plot each trait and time separately
-# for(i in seq_along(colnames(gbs_data$pheno))) {
-#   for (o in 1:length(time_points)){
-#   # i=4
-#     plot(qtl_list[[time_points[o]]], gen_map, lodcolumn=i, col=colors[o], main=colnames(gbs_data$pheno)[i],
-#                             xlab='Linkage Group',ylim=c(0, ymx*1.02))
-#     abline(h=thresh_df[o,i+1], col=colors[o], lty="dashed", lwd=0.8)
-#    legend("topright", lwd=2, col=colors, paste(time_points, "dpi"), bg="gray90")
-#     # o=3
-#     
-#   }
-#   
-#    # "H-K", , lty=c(1)
-# }
-par(mfrow=c(1,1))
-# Focus on one chromosome and only significant trait
-lod_peaks <- peaks_df %>% filter(lod>threshold)
-traits <- unique(lod_peaks$lodcolumn)
-x_intercept_start <- min(lod_peaks$ci_lo)
-
-x_intercept_end <- max(lod_peaks$ci_hi)
-chrom <- "LG3"
-x_intercept_locus <-  names(gen_map[[chrom]][gen_map[[chrom]]==intercept_start])
-y_intercept <- qtl_list[[1]] %>% as.data.frame() %>% rownames_to_column(var="locus") %>% 
-  filter(locus==x_intercept_locus) %>% .[,traits[1]]
-# str(qtl_list)
-
-
-pdf(filedate(glue::glue("{analysis_name}_LOD_{chrom}"), ".pdf", "plots"), width = 8, height = 6)
-for(i in seq_along(unique(lod_peaks$lodcolumn))) {
-  # i=4
-  plot(qtl_list[[1]], gen_map, lodcolumn=i, col=colors[1], main=colnames(gbs_data$pheno)[i], chr=chrom,
-       xlab=sub("LG", "Linkage Group ", chrom),
-       ylim=c(0, ymx*1.5))
-  if (colnames(gbs_data$pheno)[i] %in% peaks_df$lodcolumn[peaks_df$lod==ymx]){
-    
-    segments(x0 = intercept_start, y0=y_intercept, x1 = intercept_end, y1 = y_intercept, col="darkblue", lty="dashed", lwd=1) # h=thresh_df[1,i+1], col=colors[1]
-    segments(x0 = intercept_start, y0=y_intercept, x1 = intercept_start, y1 = 0, col="darkblue", lty="dashed", lwd=1) # vertical line
-    segments(x0 = intercept_end, y0=y_intercept, x1 = intercept_end, y1 = 0, col="darkblue", lty="dashed", lwd=1)
-    text(x=intercept_start, y=0.5, labels = "QTL\nregion", adj= -0.25)
-    abline(h=threshold, col="darkblue", lty="dashed", lwd=1) #ymx-1   h=thresh_df[1,i+1], col=colors[1]
-    text(x=0, y=threshold, labels = "LOD threshold", adj= c(-0.05, -0.5))
-  }
-  
-  for (o in 2:length(time_points)){
-    # o=3
-    
-    plot(qtl_list[[time_points[o]]], gen_map, lodcolumn=i, col=colors[o],  chr=chrom,
-         add = TRUE)
-    # abline(h=2.5, col=colors[o], lty="dashed", lwd=0.8)
-  }
-  
-  legend("topright", lwd=2, col=colors, paste(time_points, "dpi"), bg="gray90") # "H-K", , lty=c(1)
-}
-dev.off()
 
 
 
