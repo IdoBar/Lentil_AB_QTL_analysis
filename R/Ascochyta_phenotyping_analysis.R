@@ -87,7 +87,9 @@ car::qqPlot(audpc_data$AUDPC_sqrt)
 
 
 ##### Summary and plotting ######
-clean_data <- pheno_data %>% 
+clean_data <- readxl::read_excel(pheno_file,
+                                col_types = c("skip", "text", rep("guess", 12)), sheet = "REP 1 & 2",
+                                na = c("", "NA", "NG")) %>% 
     filter(!grepl("-mock", Variety), DPI>7,Rep==2,
                      across(ends_with("ratio"), ~ !is.na(.x) ) ) %>% # DPI>7, , Rep==2
                               # !grepl("ignore", Comment, ignore.case = TRUE)) %>% 
@@ -268,7 +270,7 @@ audpc_raincloud <- ggplot(audpc_plot_data, aes(x=DPI, y=Score)) +
 
 # ggsave(filedate("FT13038_Rep2_Stem_score_ratio_raincloud" , ".pdf", "plots"), width = 10, height=7)
 
-ggsave(filedate("FT13038_Rep2_AUDPC_raincloud" , ".pdf", "plots"), width = 10, height=3)
+# ggsave(filedate("FT13038_Rep2_AUDPC_raincloud" , ".pdf", "plots"), width = 10, height=3)
 # create a composite plot
 leaf_raincloud / stem_raincloud / audpc_raincloud + 
   plot_layout(heights = c(2,2,1), guides = 'collect') +
@@ -278,74 +280,74 @@ ggsave(filedate("FT13038_Rep2_Stem_Leaf_score_ratio_AUDPC_raincloud" , ".pdf", "
 
 
 # plot as facets
-plot_data <- clean_data %>% # filter(Rep==2, DPI!="7") %>% 
-  mutate(Genotype=map_chr(Genotype, ~ifelse(!grepl("^IL", .x), "RIL5", .x)),
-         Genotype=factor(Genotype)) %>% 
-  pivot_longer(ends_with("ratio"), names_to = "Trait", values_to = "Score_ratio") %>% 
-  mutate(Trait=sub("_.+", "", Trait))
+# plot_data <- clean_data %>% # filter(Rep==2, DPI!="7") %>% 
+#   mutate(Genotype=map_chr(Genotype, ~ifelse(!grepl("^IL", .x), "RIL5", .x)),
+#          Genotype=factor(Genotype)) %>% 
+#   pivot_longer(ends_with("ratio"), names_to = "Trait", values_to = "Score_ratio") %>% 
+#   mutate(Trait=sub("_.+", "", Trait))
+# 
+# ggplot(plot_data, aes(x=DPI, y=Score_ratio)) +
+#   ggdist::stat_halfeye(
+#     fill="#C3D6DF",
+#     adjust = .5, 
+#     width = .6, 
+#     .width = 0, 
+#     justification = -.3, 
+#     point_colour = NA) + 
+#   geom_boxplot(
+#     width = .2, 
+#     outlier.shape = NA
+#   ) +
+#   geom_point(
+#     mapping = aes(colour=Genotype), 
+#     size = 2.5, alpha = .45,
+#     position = position_jitter(
+#       seed = 1, width = .075
+#     )
+#   ) + 
+#   coord_flip(xlim = c(1.2, NA), ylim=c(0,1), clip = "off") +
+#   # scale_fill_manual(values=plot_cols$dpi) +
+#   scale_color_manual(values=plot_cols$genos,
+#                      guide=guide_legend(override.aes = list(alpha=1, size=3))) +
+#   labs(y="Disease score ratio", x="Sampling time (dpi)", colour="Genotype") +
+#   facet_wrap(~Trait) + 
+#   pale_theme$theme 
+# ggsave(filedate("FT13038_Rep2_Stem_Leaf_score_ratio_raincloud" , ".pdf", "plots"), width = 10, height=7)
 
-ggplot(plot_data, aes(x=DPI, y=Score_ratio)) +
-  ggdist::stat_halfeye(
-    fill="#C3D6DF",
-    adjust = .5, 
-    width = .6, 
-    .width = 0, 
-    justification = -.3, 
-    point_colour = NA) + 
-  geom_boxplot(
-    width = .2, 
-    outlier.shape = NA
-  ) +
-  geom_point(
-    mapping = aes(colour=Genotype), 
-    size = 2.5, alpha = .45,
-    position = position_jitter(
-      seed = 1, width = .075
-    )
-  ) + 
-  coord_flip(xlim = c(1.2, NA), ylim=c(0,1), clip = "off") +
-  # scale_fill_manual(values=plot_cols$dpi) +
-  scale_color_manual(values=plot_cols$genos,
-                     guide=guide_legend(override.aes = list(alpha=1, size=3))) +
-  labs(y="Disease score ratio", x="Sampling time (dpi)", colour="Genotype") +
-  facet_wrap(~Trait) + 
-  pale_theme$theme 
-ggsave(filedate("FT13038_Rep2_Stem_Leaf_score_ratio_raincloud" , ".pdf", "plots"), width = 10, height=7)
-
-# Plot density plots
-# ggplot(clean_data, aes(x=Stem_score_ratio)) + # , colour=DPI
-#   geom_density(size=1, colour="darkslategrey") + 
+# # Plot density plots
+# # ggplot(clean_data, aes(x=Stem_score_ratio)) + # , colour=DPI
+# #   geom_density(size=1, colour="darkslategrey") + 
+# #   scale_color_manual(values=legend_cols, 
+# #                      guide=guide_legend(override.aes = list(linetype="solid", size=1))) +
+# #   labs(x="Stem lesion coverage (%)", y="Density", colour="Genotype") +
+# #   # scale_x_log10() + # xlim(0,1) +
+# #   # geom_vline(data=mean_data, aes(xintercept=Stem_lesion_percent),
+# #   #            size=0.5, linetype="solid", colour=legend_cols) + #"black"
+# #   geom_vline(data=sum_data, aes(xintercept=Stem_lesion_percent_mean, colour=Sample),
+# #              linetype="dashed", size=0.75) +
+# #   facet_grid(DPI ~ .) +
+# #   plot_theme("grey", 22)   # +
+# # # theme(legend.text=element_text(lineheight=.8),
+# # #       legend.key.height=unit(0.5, "cm"))
+# # ggsave(filedate("Stem_lesion_coverage_density_FT15124", ".pdf", "output_plots"), width = 10, height=10)
+# 
+# # violin plots
+# 
+# ggplot(samples_sum_data, aes(x=DPI, y=Stem_score_ratio_mean)) + # , colour=DPI
+#   geom_violin() + # scale_y_log10() + #draw_quantiles = quantiles
+#   geom_point(data=sum_data, aes(y=Stem_score_ratio_mean, x=DPI, colour=Variety), 
+#              size=2.5) + 
 #   scale_color_manual(values=legend_cols, 
-#                      guide=guide_legend(override.aes = list(linetype="solid", size=1))) +
-#   labs(x="Stem lesion coverage (%)", y="Density", colour="Genotype") +
-#   # scale_x_log10() + # xlim(0,1) +
-#   # geom_vline(data=mean_data, aes(xintercept=Stem_lesion_percent),
-#   #            size=0.5, linetype="solid", colour=legend_cols) + #"black"
-#   geom_vline(data=sum_data, aes(xintercept=Stem_lesion_percent_mean, colour=Sample),
-#              linetype="dashed", size=0.75) +
-#   facet_grid(DPI ~ .) +
-#   plot_theme("grey", 22)   # +
-# # theme(legend.text=element_text(lineheight=.8),
-# #       legend.key.height=unit(0.5, "cm"))
-# ggsave(filedate("Stem_lesion_coverage_density_FT15124", ".pdf", "output_plots"), width = 10, height=10)
-
-# violin plots
-
-ggplot(samples_sum_data, aes(x=DPI, y=Stem_score_ratio_mean)) + # , colour=DPI
-  geom_violin() + # scale_y_log10() + #draw_quantiles = quantiles
-  geom_point(data=sum_data, aes(y=Stem_score_ratio_mean, x=DPI, colour=Variety), 
-             size=2.5) + 
-  scale_color_manual(values=legend_cols, 
-          guide=guide_legend(override.aes = list(linetype="solid", size=3))) +
-  # geom_errorbar(data = sum_data, mapping = aes(x=DPI, y=Stem_lesion_percent_mean, 
-  #                                    ymin=Stem_lesion_percent_mean - Stem_lesion_percent_sd,
-  #                                    ymax=Stem_lesion_percent_mean + Stem_lesion_percent_sd,
-  #                                    colour=Sample), width=0.1) +
-  labs(y="Transformed stem score ratio", x="Sampling time (dpi)", 
-       colour="Genotype") +
-  plot_theme("grey", 22) 
-ggsave(filedate("Stem_score_ratio_mean_sqrt_violin_FT13038" , ".pdf", "output_plots"), width = 10, height=7)
-
+#           guide=guide_legend(override.aes = list(linetype="solid", size=3))) +
+#   # geom_errorbar(data = sum_data, mapping = aes(x=DPI, y=Stem_lesion_percent_mean, 
+#   #                                    ymin=Stem_lesion_percent_mean - Stem_lesion_percent_sd,
+#   #                                    ymax=Stem_lesion_percent_mean + Stem_lesion_percent_sd,
+#   #                                    colour=Sample), width=0.1) +
+#   labs(y="Transformed stem score ratio", x="Sampling time (dpi)", 
+#        colour="Genotype") +
+#   plot_theme("grey", 22) 
+# ggsave(filedate("Stem_score_ratio_mean_sqrt_violin_FT13038" , ".pdf", "output_plots"), width = 10, height=7)
+# 
 
 ##### Perform Chi-sq analysis on progeny ####
 

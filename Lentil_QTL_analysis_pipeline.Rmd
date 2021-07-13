@@ -1,8 +1,8 @@
 ---
 title: "QTL Mapping of Lentil Defence Response to <i>Ascochyta lentis</i>"
 subtitle: "QTL Analysis of SNPs derived from RNA-Seq data"
-author: "Hari Dadu"
-date: "21 November 2018"
+author: "Hari Dadu and Ido Bar"
+date: "13 July 2021"
 output: 
     html_document:
       toc: true
@@ -57,7 +57,7 @@ peaks_df <- readxl::read_excel(recent_file("./QTL_results",
 
 # Read in phenotypic data
 pheno_data <- readxl::read_excel("./data/Phenotyping_AB_results.xlsx", 
-           col_types = c("skip", "text", rep("guess", 12)), sheet = "REP 1", 
+           col_types = c("skip", "text", rep("guess", 12)), sheet = "REP 1 & 2", 
            na = c("", "NA", "NG")) 
 loal_mapping <- readxl::read_excel("./data/Phenotyping_AB_results.xlsx", 
                       sheet = "LOAL_map", na = c("", "NA", "NG"), skip = 1) %>%
@@ -84,11 +84,11 @@ obs_variety <- clean_data %>% dplyr::count(Variety)
 ## Study Description
 ### Experimental Design
 Two distinct lentil (*Lens culinaris*) genotypes, resistant and susceptible to Ascochyta blight disease (**ILWL180** and **ILL6002**, respectively) were crossed and the F1 was recursively self-pollinated to create an F5 population. The population was sown and challenged with an inoculation of *Ascochyta lentis* (isolate FT13038) and quantitatively phenotyped by stem and leaf lesion ratios over the course of 4 weeks, at 7, 14, 21 and 28 days post inoculation (dpi).
-The phenotypic data collected was filtered to remove any missing information and was summarised for each genotype, at each sampling time, by averaging the score of its replicates. The cleaned data consisted `r clean_data %>% count(Variety) %>% nrow()` genotypes (due to some missing genotypes that couldn't be grown in replictaes), with an average of `r round(mean(obs_variety$n), 1)` observations per genotype.
+The phenotypic data collected was filtered to remove any missing information and was summarised for each genotype, at each sampling time, by averaging the score of its replicates. The cleaned data consisted `r clean_data %>% count(Variety) %>% nrow()` genotypes (due to some missing genotypes that couldn't be grown in replictaes), with an average of `r round(mean(obs_variety$n), 0)` observations per genotype.
 
 
 ### Genotyping
-Both parent genotypes (x3 replicates each) and their F5 (n=140) progeny population, as well as representatives of "ILL207" cultivar, were sent for RNA-sequencing (RNA-Seq; AgriBio, Bundoora, VIC). Library preparation protocol.... and sequenced on 2 lanes of an Illumina HiSeq3000 sequencing platform, producing xxx bp paired-end reads
+Both parent genotypes (x3 replicates each) and their F5 (n=140) progeny population, as well as representatives of "ILL207" cultivar, were sent for RNA-sequencing (RNA-Seq; AgriBio, Bundoora, VIC). RNA-Seq cDNA libraries were prepared using a SureSelect Strand-Specific mRNA Library Preparation kit (Agilent Technologies, Santa Clara, CA, USA). The libraries were sequenced on 2 lanes of an Illumina HiSeq3000 sequencing platform, producing a total of 694,694,624 paired end reads (150-bp) with an average of 4,997,803 reads per RIL progeny. Detailed sample and sequencing metadata information can be found in the associated NCBI GEO submission [GSE176412](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE176412) (BioProject PRJNA736090 and SRA ID SRP323267).
 
 
 ```{r eval=TRUE}
@@ -107,7 +107,7 @@ DT::datatable(linkage_map_stats, caption = tbls(name="Homozyg_V1_stats"), rownam
 ## Methodologies
 
 ### Variant Filtering
-Variants were first screened to clear calls with low Genotyping Quality ($GQ<20$) and too low or too high Depth coverage ($DP<7$ || $DP>500$). The remaining variant calls at each locus were counted and loci were filtered to include only SNP sites with valid calls in at least 50% of the samples ($NS \ge $). Filtration was performed using `r fontFmt("SnpSift", custom_font)` v4.3p [@ruden_using_2012; @cingolani_program_2012]. 
+Variants were first screened to clear calls with low Genotyping Quality ($GQ<20$) and too low or too high Depth coverage ($DP<7$ || $DP>500$). Initial filtration was performed using `r fontFmt("SnpSift", custom_font)` v4.3p [@ruden_using_2012; @cingolani_program_2012]. 
 
 ```{bash vcf_filtering}
 # install SnpSift and SnpEff
