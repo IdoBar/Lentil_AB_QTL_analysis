@@ -1,7 +1,7 @@
 devtools::source_gist("7f63547158ecdbacf31b54a58af0d1cc", filename = "Util.R")
 
 # Install and load needed packages
-pacman::p_load(tidyverse, vcfR) # "radiator", 
+pacman::p_load(tidyverse, vcfR, car) # "radiator", 
 
 options(stringsAsFactors=FALSE)
 

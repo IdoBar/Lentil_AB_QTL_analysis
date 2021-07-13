@@ -1,14 +1,15 @@
 devtools::source_gist("7f63547158ecdbacf31b54a58af0d1cc", filename = "Util.R")
 # Install R/qtl2
-if (!require("qtl2")) install.packages("qtl2", repos="https://rqtl.org/qtl2cran")
+# if (!require("qtl2")) install.packages("qtl2", repos="https://rqtl.org/qtl2cran")
 # if (!require("qtl2"))  devtools::install_github("rqtl/qtl2")
 # install.packages("mixtools")
 # devtools::install_github("KonradZych/phenotypes2genotypes")
 devtools::install_github("IdoBar/LinkageMapView@1c6b560")
 # Install and load needed packages
-package_list <- c("qtl", "rentrez", "vcfR", "paletteer",
-                  "LinkageMapView", "openxlsx", "seqinr","tidyverse",
-                  "qtl2ggplot") # "radiator", "qtl2"
+options(repos = getOption("repos")["CRAN"])
+package_list <- c("qtl2", "rentrez", "vcfR", "paletteer",
+                  "LinkageMapView", "seqinr","openxlsx",
+                  "tidyverse") # "radiator", "openxlsx","qtl2","qtl2ggplot" 
 pacman::p_load(char = package_list)
 
 # Define plotting theme
@@ -23,12 +24,13 @@ ncores=3
 #### Analysis in R/qtl2  ####
 analysis_name <- "Lentil_FT13038_Homozyg_V1_snps"
 base_analysis <- sub("_Rep.+", "", analysis_name)
-yaml_files <- dir("./data/qtl2_files", glue::glue("{analysis_name}_\\d+dpi+\\.yaml"), 
+yaml_files <- dir("./data/qtl2_files", 
+                  glue::glue("{analysis_name}_\\d+dpi+\\.yaml"), 
                   full.names = TRUE)
 
 # pheno_data <- read_csv("./data/qtl2_files/Lentil_FT13038_pheno_14dpi.csv")
 # yaml_files <- yaml_files[grepl(analysis_name, yaml_files)]
-time_points <- as.character((2:4)*7)
+time_points <- as.character(7*2:4)
 thresh_df <- NULL
 LOD_scores <- setNames(vector(mode = "list", length = length(time_points)), time_points)
 peaks_df <- NULL
@@ -47,16 +49,18 @@ for (dpi in time_points){
     # gen_map=gbs_data$gmap
     gen_map <- insert_pseudomarkers(gbs_data$gmap, step=1)
     gen_map <- reduce_map_gaps(gen_map)
-    gen_map_df <- gen_map %>% imap_dfr(~data.frame(Locus=names(.x), 
-                                                     Position=.x) %>%  
-                                    mutate(Group=.y))
+    gen_map_df <- gen_map %>% 
+      imap_dfr(~data.frame(Locus=names(.x), 
+                           Position=.x) %>%  
+                           mutate(Group=.y))
       
       
     # }
   
   # calculate the QTL genotype probabilities
   # gen_map=gbs_data$gmap
-  pr <- calc_genoprob(gbs_data, gen_map, error_prob=0.002, cores=ncores)
+  pr <- calc_genoprob(gbs_data, gen_map, error_prob=0.002, 
+                      cores=ncores)
   # Calculate error LOD 
   # calc_errorlod()
   # Calculate kinship matrix (needed for LMM)
@@ -65,17 +69,21 @@ for (dpi in time_points){
   qtl_list[[dpi]] <- scan1(pr, gbs_data$pheno, kinship_loco, cores=ncores)
   LOD_scores[[dpi]] <- as.data.frame(qtl_list[[dpi]]) %>% 
     rownames_to_column("Locus") %>% # [[dpi]]
-    gather(key="Trait", value="LOD", ends_with("_ratio")) %>% 
+    gather(key="Trait", value="LOD", contains("_")) %>% 
     left_join(., gen_map_df) %>% dplyr::select(Position, Group, LOD, Trait) 
   # calculate LOD threshold based on permutation step
-  perm_lod <- scan1perm(pr, gbs_data$pheno, kinship_loco, n_perm = 1000,
+  perm_lod <- scan1perm(pr, gbs_data$pheno, 
+                        kinship_loco, n_perm = 1000,
                         cores=ncores)
-  thres_sum <- data.frame(summary(perm_lod)) %>% rownames_to_column("alpha") %>%
+  thres_sum <- data.frame(summary(perm_lod)) %>% 
+    rownames_to_column("alpha") %>%
     mutate(dpi=dpi)
   thresh_df <- bind_rows(thresh_df, thres_sum)
 
   # Find peaks
-  peaks <- find_peaks(qtl_list[[dpi]], gen_map, threshold=lod_thres, drop=1, peakdrop=2) %>%
+  peaks <- find_peaks(qtl_list[[dpi]], gen_map, 
+                      threshold=lod_thres, drop=1, 
+                      peakdrop=2) %>%
     mutate(dpi=dpi)
   peaks_df <- bind_rows(peaks_df, peaks) # thres_sum$Leaf_lesion_percent
   # get physical position at location - need to add physical map (pmap) to the cross - check R/qtl
@@ -102,13 +110,14 @@ par_pal <- paletteer_d("colorblindr::OkabeIto")[c(8, 5,6)]
 
 plot_cols <- list(
   trait=colnames(gbs_data$pheno) %>% 
-    setNames(as.character(paletteer_d("ggthemes::calc", length(.))), .), #%>%  paletteer_d("ggthemes::calc", length(.)))
+      setNames(as.character(paletteer_d("ggthemes::colorblind", length(.)+1)[-1]), .), #%>%  paletteer_d("ggthemes::calc", length(.)))
   #  c(., c("Population"="black")), # awtools::mpalette , "rcartocolor::Safe/Vivid" 
   dpi=time_points %>% 
     setNames(as.character(paletteer_d("ggthemes::calc", length(.))), .)
 )
 
-
+# paletteer_d("ggthemes::few_Medium", n = 4)
+# paletteer_d("ggthemes::Color_Blind")
 
 # plot with qtl2ggplot
 plot_map <- gen_map
@@ -117,14 +126,17 @@ ymx <- max(peaks_df$lod)
 threshold=3
 
 # plot_data <- plot_map %>% imap_dfr(~tibble(Chr=.y, Locus=names(.x), Pos=.x))
-plot_data <- LOD_scores %>% imap_dfr(~mutate(.x, dpi=paste(.y, "dpi"),
-                                     Trait=sub("_score_ratio", " Lesion Score", Trait))) %>% 
-  as_tibble() %>% filter(Group!="LG8")
+plot_data <- LOD_scores %>% 
+  imap_dfr(~mutate(.x, dpi=paste(.y, "dpi"),
+             Trait=factor(Trait, 
+                          levels = colnames(gbs_data$pheno))) %>% 
+  as_tibble() %>% filter(Group!="LG8"))
 
 ggplot(plot_data, aes(x=Position, y=LOD, colour=Trait)) + 
   geom_line(size=1) +
   geom_hline(yintercept=threshold, col="#393939", lty="dashed", lwd=0.75) +
-  scale_color_manual(values = adjustcolor(as.character(plot_cols$trait), alpha.f = 0.75)) +
+  scale_color_manual(values = adjustcolor(as.character(plot_cols$trait), alpha.f = 0.75), 
+           labels = gsub("_", " ", colnames(gbs_data$pheno))) +
        facet_grid(rows = vars(dpi), cols = vars(Group)) +
   labs(x="Position (cM)") +
   guides(color=guide_legend(override.aes = list(color=as.character(plot_cols$trait)))) +
