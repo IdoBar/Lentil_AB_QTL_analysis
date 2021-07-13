@@ -22,6 +22,13 @@
    inkscape:export-ydpi="300">
   <defs
      id="defs2">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 148.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="210 : 148.5 : 1"
+       inkscape:persp3d-origin="105 : 99 : 1"
+       id="perspective1791" />
     <g
        id="g1016">
       <symbol
@@ -569,15 +576,15 @@
      borderopacity="1.0"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="-15.737234"
-     inkscape:cy="643.30112"
+     inkscape:zoom="1.979899"
+     inkscape:cx="213.89897"
+     inkscape:cy="524.40048"
      inkscape:document-units="mm"
-     inkscape:current-layer="surface13897"
+     inkscape:current-layer="g7828"
      showgrid="false"
      inkscape:window-width="1920"
      inkscape:window-height="1027"
-     inkscape:window-x="1912"
+     inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      showguides="true"
@@ -596,7 +603,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -2980,7 +2987,7 @@
          inkscape:connector-curvature="0" />
       <g
          id="g12352"
-         transform="translate(12)">
+         transform="translate(11.621193,15.909902)">
         <g
            transform="translate(65.433419)"
            style="fill:#000000;fill-opacity:1"
@@ -6291,7 +6298,7 @@
            d="m 504.58984,245.35938 h -6 v 93.21093 h 6 z m 0,0"
            id="path3578" />
         <g
-           transform="translate(-94.5)"
+           transform="translate(-98.288072,1.1364216)"
            style="fill:#000000;fill-opacity:1"
            id="g3604">
           <use
@@ -6358,6 +6365,25 @@
              y="300.022"
              id="use3598" />
         </g>
+        <path
+           inkscape:connector-curvature="0"
+           style="fill:#800080;fill-opacity:1;fill-rule:nonzero;stroke:#800080;stroke-width:0.75;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-opacity:1"
+           d="m 531.08072,338.87375 h -6 v -93.21093 h 6 z m 0,0"
+           id="path3578-3" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:30px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75"
+           x="247.84462"
+           y="-536.9079"
+           id="text1795"
+           transform="rotate(90)"
+           inkscape:transform-center-x="-6.1471991"
+           inkscape:transform-center-y="-9.3544335"><tspan
+             sodipodi:role="line"
+             id="tspan1793"
+             x="247.84462"
+             y="-536.9079"
+             style="font-size:12px;stroke-width:0.75">AUDPC</tspan></text>
       </g>
       <g
          id="g8029"
